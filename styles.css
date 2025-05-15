@@ -186,3 +186,79 @@ kbd {
 	border-radius: 4px;
 	text-align: left;
 }
+
+.number-box {
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 5px;
+	font-size: 18px;
+	font-weight: bold;
+	border-radius: 4px;
+}
+
+.sorted {
+	background-color: #a8e6cf;
+	border: 2px solid #1b9e77;
+}
+
+.unsorted {
+	background-color: #ffaaa6;
+	border: 2px solid #d95f02;
+}
+
+.current {
+	background-color: #ffd3b6;
+	border: 2px solid #ff8c00;
+	animation: pulse 1s infinite;
+}
+
+/* New styles for bubble sort */
+.compared {
+	background-color: #ffd3b6;
+	border: 2px solid #ff8c00;
+	animation: pulse 1s infinite;
+}
+
+.swapped {
+	background-color: #ff9e80;
+	border: 2px solid #ff3d00;
+	animation: swap 1s infinite;
+}
+
+.final-position {
+	background-color: #a8e6cf;
+	border: 2px solid #1b9e77;
+	box-shadow: 0 0 10px #1b9e77;
+}
+
+.algorithm-selector {
+	margin: 20px 0;
+	text-align: center;
+}
+
+.algorithm-selector select {
+	padding: 8px 15px;
+	font-size: 16px;
+	border-radius: 4px;
+	border: 1px solid #ccc;
+	background-color: #fff;
+	cursor: pointer;
+}
+
+@keyframes swap {
+	0% {
+		transform: translateY(0);
+	}
+	25% {
+		transform: translateY(-10px);
+	}
+	75% {
+		transform: translateY(10px);
+	}
+	100% {
+		transform: translateY(0);
+	}
+}

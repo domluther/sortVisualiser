@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insertion Sort Visualization</title>
+    <title>Sorting Algorithms Visualization</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Insertion Sort Visualization</h1>
+    <h1>Insertion Sort Visualization 🦆</h1>
+    
+    <div class="algorithm-selector">
+        <select id="algorithm-selector">
+            <option value="insertion">Insertion Sort</option>
+            <option value="bubble">Bubble Sort</option>
+        </select>
+    </div>
     
     <div class="toggle-container">
         <div>
@@ -27,13 +34,14 @@
             <span>Detailed Mode</span>
         </div>
     </div>
+        
+    <div id="sort-container" class="sort-container"></div>
     
     <div class="explanation" id="explanation">
         Starting with an unsorted array of 8 random numbers.
     </div>
-    
-    <div id="sort-container" class="sort-container"></div>
-    
+
+
     <div class="controls">
         <button id="next-btn">Next Step</button>
         <button id="reset-btn">Reset</button>
