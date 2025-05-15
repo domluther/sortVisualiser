@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insertion Sort Visualization</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Insertion Sort Visualization</h1>
+    
+    <div class="toggle-container">
+        <div>
+            <span>Ascending</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="sort-direction">
+                <span class="slider"></span>
+            </label>
+            <span>Descending</span>
+        </div>
+        <div>
+            <span>Simple Mode</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="detailed-mode">
+                <span class="slider"></span>
+            </label>
+            <span>Detailed Mode</span>
+        </div>
+    </div>
+    
+    <div class="explanation" id="explanation">
+        Starting with an unsorted array of 8 random numbers.
+    </div>
+    
+    <div id="sort-container" class="sort-container"></div>
+    
+    <div class="controls">
+        <button id="next-btn">Next Step</button>
+        <button id="reset-btn">Reset</button>
+    </div>
+    
+    <div class="keyboard-shortcuts">
+        <p>Keyboard shortcuts: Press <kbd>N</kbd> for next step, <kbd>R</kbd> for reset</p>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
