@@ -5,8 +5,10 @@ const state = {
 	maxStep: 0,
 	isAscending: true,
 	isDetailedMode: false,
+	isLetters: false, // New property to track if using letters instead of numbers
+	arrayLength: 8, // New property to track array length
 	steps: [],
-	algorithm: "insertion", // New property to track current algorithm
+	algorithm: "insertion", // Track current algorithm
 };
 
 // DOM elements
@@ -15,20 +17,31 @@ const nextButton = document.getElementById("next-btn");
 const resetButton = document.getElementById("reset-btn");
 const sortDirectionToggle = document.getElementById("sort-direction");
 const detailedModeToggle = document.getElementById("detailed-mode");
+const lettersToggle = document.getElementById("letters-mode"); // Toggle for letters/numbers
+const arraySizeDisplay = document.getElementById("array-size-display"); // Display for array size
+const increaseSizeButton = document.getElementById("increase-size"); // Button to increase array size
+const decreaseSizeButton = document.getElementById("decrease-size"); // Button to decrease array size
 const explanationElement = document.getElementById("explanation");
-const algorithmSelector = document.getElementById("algorithm-selector"); // New element
+const algorithmSelector = document.getElementById("algorithm-selector");
 
 // Initialize the application
 function init() {
-	generateRandomNumbers();
+	generateRandomArray();
 	calculateSortSteps();
 	renderCurrentStep();
 
+	// Set up event listeners
 	nextButton.addEventListener("click", handleNextStep);
 	resetButton.addEventListener("click", handleReset);
 	sortDirectionToggle.addEventListener("change", handleDirectionChange);
 	detailedModeToggle.addEventListener("change", handleModeChange);
-	algorithmSelector.addEventListener("change", handleAlgorithmChange); // New event listener
+	lettersToggle.addEventListener("change", handleDataTypeChange);
+	increaseSizeButton.addEventListener("click", handleIncreaseSize);
+	decreaseSizeButton.addEventListener("click", handleDecreaseSize);
+	algorithmSelector.addEventListener("change", handleAlgorithmChange);
+
+	// Set initial array size value in the display
+	arraySizeDisplay.textContent = state.arrayLength;
 
 	// Add keyboard event listeners
 	document.addEventListener("keydown", handleKeyDown);
@@ -43,11 +56,23 @@ function handleKeyDown(event) {
 	}
 }
 
-// Generate 8 random numbers between 1 and 99
-function generateRandomNumbers() {
+// Generate random array of specified length
+function generateRandomArray() {
 	state.numbers = [];
-	for (let i = 0; i < 8; i++) {
-		state.numbers.push(Math.floor(Math.random() * 99) + 1);
+	if (state.isLetters) {
+		// Generate random letters (A-Z)
+		for (let i = 0; i < state.arrayLength; i++) {
+			// Generate a random uppercase letter (ASCII code 65-90)
+			const randomLetter = String.fromCharCode(
+				Math.floor(Math.random() * 26) + 65,
+			);
+			state.numbers.push(randomLetter);
+		}
+	} else {
+		// Generate random numbers (1-99)
+		for (let i = 0; i < state.arrayLength; i++) {
+			state.numbers.push(Math.floor(Math.random() * 99) + 1);
+		}
 	}
 	state.currentStep = 0;
 }
@@ -58,6 +83,8 @@ function calculateSortSteps() {
 		calculateInsertionSortSteps();
 	} else if (state.algorithm === "bubble") {
 		calculateBubbleSortSteps();
+	} else if (state.algorithm === "merge") {
+		calculateMergeSortSteps();
 	}
 }
 
@@ -374,7 +401,7 @@ function handleNextStep() {
 function handleReset() {
 	sortContainer.innerHTML = "";
 	nextButton.disabled = false;
-	generateRandomNumbers();
+	generateRandomArray();
 	calculateSortSteps();
 	renderCurrentStep();
 }
@@ -391,6 +418,30 @@ function handleModeChange() {
 	handleReset(); // Simply reset when mode changes
 }
 
+// Handle data type toggle change (numbers or letters)
+function handleDataTypeChange() {
+	state.isLetters = lettersToggle.checked;
+	handleReset();
+}
+
+// Handle increase size button click
+function handleIncreaseSize() {
+	if (state.arrayLength < 12) {
+		state.arrayLength++;
+		arraySizeDisplay.textContent = state.arrayLength;
+		handleReset();
+	}
+}
+
+// Handle decrease size button click
+function handleDecreaseSize() {
+	if (state.arrayLength > 4) {
+		state.arrayLength--;
+		arraySizeDisplay.textContent = state.arrayLength;
+		handleReset();
+	}
+}
+
 // Handle algorithm selection change
 function handleAlgorithmChange() {
 	state.algorithm = algorithmSelector.value;
@@ -400,6 +451,19 @@ function handleAlgorithmChange() {
 	document.querySelector("h1").textContent =
 		`${state.algorithm.charAt(0).toUpperCase() + state.algorithm.slice(1)} Sort Visualization 🦆`;
 	handleReset();
+}
+
+function calculateMergeSortSteps() {
+	const array = [...state.numbers];
+	// Placeholder for merge sort implementation
+	state.steps = [];
+	state.steps.push({
+		array: [...array],
+		current: null,
+		compared: null,
+		description: "Merge sort implementation coming soon!",
+	});
+	state.maxStep = state.steps.length - 1;
 }
 
 // Initialize the application

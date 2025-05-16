@@ -9,38 +9,63 @@
 <body>
     <h1>Insertion Sort Visualization 🦆</h1>
     
-    <div class="algorithm-selector">
-        <select id="algorithm-selector">
-            <option value="insertion">Insertion Sort</option>
-            <option value="bubble">Bubble Sort</option>
-        </select>
-    </div>
-    
-    <div class="toggle-container">
-        <div>
-            <span>Ascending</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="sort-direction">
-                <span class="slider"></span>
-            </label>
-            <span>Descending</span>
+    <div class="settings-panel">
+        <div class="settings-section">
+            <h3>Algorithm</h3>
+            <div class="algorithm-selector">
+                <select id="algorithm-selector">
+                    <option value="insertion">Insertion Sort</option>
+                    <option value="bubble">Bubble Sort</option>
+                    <option value="merge">Merge Sort</option>
+                </select>
+            </div>
         </div>
-        <div>
-            <span>Simple Mode</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="detailed-mode">
-                <span class="slider"></span>
-            </label>
-            <span>Detailed Mode</span>
+        
+        <div class="settings-section">
+            <h3>Array Size</h3>
+            <div class="array-size-control">
+                <button id="decrease-size" class="size-btn">-</button>
+                <span id="array-size-display">8</span>
+                <button id="increase-size" class="size-btn">+</button>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3>Options</h3>
+            <div class="toggle-options">
+                <div class="toggle-option">
+                    <span>Ascending</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="sort-direction">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Descending</span>
+                </div>
+                <div class="toggle-option">
+                    <span>Simple Mode</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="detailed-mode">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Detailed Mode</span>
+                </div>
+                <div class="toggle-option">
+                    <span>Numbers</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="letters-mode">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Letters</span>
+                </div>
+            </div>
         </div>
     </div>
         
     <div id="sort-container" class="sort-container"></div>
     
     <div class="explanation" id="explanation">
-        Starting with an unsorted array of 8 random numbers.
+        Starting with an unsorted array of random elements.
     </div>
-
 
     <div class="controls">
         <button id="next-btn">Next Step</button>
