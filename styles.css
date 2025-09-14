@@ -233,6 +233,42 @@ input:checked + .slider:before {
 	animation: pulse 1s infinite;
 }
 
+.insertion-point {
+	background-color: #e1f5fe;
+	border: 2px solid #0277bd;
+	animation: pulse-blue 1s infinite;
+	position: relative;
+}
+
+.insertion-point:after {
+	content: "⬇";
+	position: absolute;
+	top: -25px;
+	left: -15px;
+	transform: translateY(0);
+	font-size: 20px;
+	color: #0277bd;
+	animation: bounce 1s infinite;
+}
+
+.inserted-after {
+	background-color: #e1f5fe;
+	border: 2px solid #0277bd;
+	animation: pulse-blue 1s infinite;
+	position: relative;
+}
+
+.inserted-after:after {
+	content: "⬇";
+	position: absolute;
+	top: -25px;
+	right: -15px;
+	transform: translateY(0);
+	font-size: 20px;
+	color: #0277bd;
+	animation: bounce 1s infinite;
+}
+
 .moved-value {
 	margin-left: 20px;
 	background-color: #ffd3b6;
@@ -270,6 +306,18 @@ kbd {
 	}
 	100% {
 		transform: scale(1);
+	}
+}
+
+@keyframes bounce {
+	0%, 20%, 50%, 80%, 100% {
+		transform: translateY(0);
+	}
+	40% {
+		transform: translateY(-10px);
+	}
+	60% {
+		transform: translateY(-5px);
 	}
 }
 

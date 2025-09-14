@@ -105,44 +105,66 @@ function calculateInsertionSortSteps() {
 	for (let i = 1; i < array.length; i++) {
 		const current = array[i];
 
-		// Simple mode doesn't show this step
-		if (state.isDetailedMode) {
-			// Save step showing which element will be inserted
-			state.steps.push({
-				array: [...array],
-				sorted: i,
-				current: i,
-				description: `Taking element ${current} and inserting it into the correct position in the sorted list.`,
-			});
-		}
+		// Add pass indicator for each insertion
+		state.steps.push({
+			array: [...array],
+			sorted: i,
+			current: i, // Highlight the first unsorted element
+			passNumber: i,
+			isPassHeader: true, // Mark this as a pass header
+			description: `Pass ${i}: First unsorted element is ${current}.`,
+		});
 
 		let j = i - 1;
-		let insertPosition = j + 1;
+		let insertPosition = i; // Default to end of sorted portion
 
-		// For detailed mode, save every shift step
+		// For detailed mode, show comparison steps to find insertion position
 		if (state.isDetailedMode) {
-			// Compare with all elements in sorted list
-			while (
-				j >= 0 &&
-				(state.isAscending ? array[j] > current : array[j] < current)
-			) {
-				const arrayCopy = [...array];
-
-				// Store the current value temporarily
-				const temp = arrayCopy[j + 1];
-				// Shift the larger value right
-				arrayCopy[j + 1] = arrayCopy[j];
-
+			// Compare with elements in sorted portion from right to left
+			while (j >= 0) {
+				// Show comparison step
 				state.steps.push({
-					array: arrayCopy,
-					sorted: i + 1,
-					current: j,
-					movedValue: temp,
-					description: `${current} is ${state.isAscending ? "smaller" : "larger"} than ${arrayCopy[j]}, so goes before.`,
+					array: [...array],
+					sorted: i,
+					current: i, // Element being inserted
+					compared: j, // Element being compared with
+					description: `Comparing ${current} with ${array[j]}. ${current} is ${
+						state.isAscending 
+							? (array[j] > current ? "smaller, so continue searching left" : "larger or equal, so insertion point found")
+							: (array[j] < current ? "larger, so continue searching left" : "smaller or equal, so insertion point found")
+					}.`,
 				});
 
-				j--;
-				insertPosition = j + 1;
+				// Check if we need to continue searching
+				const needToMoveLeft = state.isAscending ? array[j] > current : array[j] < current;
+				
+				if (needToMoveLeft) {
+					j--;
+					insertPosition = j + 1;
+				} else {
+					insertPosition = j + 1;
+					break;
+				}
+			}
+
+			// If we've compared with all elements and reached the beginning
+			if (j < 0 && insertPosition === 0) {
+				state.steps.push({
+					array: [...array],
+					sorted: i,
+					current: i,
+					insertionPoint: 0,
+					description: `${current} is ${state.isAscending ? "smaller" : "larger"} than all elements in the sorted portion, so goes at the beginning.`,
+				});
+			} else if (insertPosition < i) {
+				// Show where the insertion will happen
+				state.steps.push({
+					array: [...array],
+					sorted: i,
+					current: i,
+					insertionPoint: insertPosition,
+					description: `Found insertion point for ${current} at position ${insertPosition}.`,
+				});
 			}
 		} else {
 			// For simple mode, just find the insertion position without showing steps
@@ -171,6 +193,7 @@ function calculateInsertionSortSteps() {
 
 		// Both modes show the completed insertion
 		let insertionDescription = `Inserted ${current}`;
+		let insertedAfterPosition = null; // Track if we need to show "inserted after" arrow
 		
 		// Add position context based on where it was inserted
 		if (insertPosition === 0) {
@@ -178,6 +201,10 @@ function calculateInsertionSortSteps() {
 		} else if (insertPosition === i) {
 			// Inserted at the end of the sorted portion (before any unsorted elements)
 			insertionDescription += `  after ${array[insertPosition - 1]}.`;
+			// Only show arrow in detailed mode
+			if (state.isDetailedMode) {
+				insertedAfterPosition = insertPosition - 1; // Show arrow on the right of this position
+			}
 		} else {
 			// Inserted somewhere in the middle
 			insertionDescription += ` after ${array[insertPosition - 1]} and before ${array[insertPosition + 1]}.`;
@@ -187,6 +214,7 @@ function calculateInsertionSortSteps() {
 			array: [...array],
 			sorted: i + 1,
 			current: insertPosition,
+			insertedAfter: insertedAfterPosition,
 			description: insertionDescription,
 		});
 	}
@@ -345,17 +373,25 @@ function renderCurrentStep() {
 	// Update the explanation
 	explanationElement.textContent = step.description;
 
-	// Check if this is the start of a new pass for bubble sort
+	// Check if this is the start of a new pass
 	if (state.algorithm === "bubble" && 
 		step.current === null && 
 		step.compared === null && 
 		step.sortedCount !== undefined &&
 		!step.finalPosition) {
 		
-		// Add a pass header
+		// Add a pass header for bubble sort
 		const passHeader = document.createElement("div");
 		passHeader.className = "pass-header";
 		passHeader.textContent = `Pass ${step.sortedCount + 1}`;
+		sortContainer.appendChild(passHeader);
+	} else if (state.algorithm === "insertion" && 
+		step.isPassHeader) {
+		
+		// Add a pass header for insertion sort
+		const passHeader = document.createElement("div");
+		passHeader.className = "pass-header";
+		passHeader.textContent = `Pass ${step.passNumber}`;
 		sortContainer.appendChild(passHeader);
 	}
 
@@ -373,6 +409,12 @@ function renderCurrentStep() {
 		if (state.algorithm === "insertion") {
 			if (i === step.current) {
 				box.classList.add("current");
+			} else if (i === step.compared) {
+				box.classList.add("compared");
+			} else if (i === step.insertionPoint) {
+				box.classList.add("insertion-point");
+			} else if (i === step.insertedAfter) {
+				box.classList.add("inserted-after");
 			} else if (i < step.sorted) {
 				box.classList.add("sorted");
 			} else {
