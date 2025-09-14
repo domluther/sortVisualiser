@@ -32,7 +32,7 @@ const applyCustomArrayButton = document.getElementById("apply-custom-array"); //
 
 // Initialize the application
 function init() {
-	state.algorithm = 'merge'; // Default to merge sort
+	state.algorithm = 'bubble'; // Default to bubble sort
 	
 	// Set the algorithm selector to match the default
 	algorithmSelector.value = state.algorithm;
@@ -297,7 +297,7 @@ function calculateInsertionSortSteps() {
 					sorted: i,
 					current: i,
 					insertionPoint: insertPosition,
-					description: `Found insertion point for ${current} at position ${insertPosition}.`,
+					description: `Insertion point for ${current} is before ${array[insertPosition]}.`,
 				});
 			}
 		} else {
@@ -381,18 +381,21 @@ function calculateBubbleSortSteps() {
 	let previousPassSwapped = false; // Track if previous pass had swaps
 	const n = array.length;
 	let sortedElements = 0;
+	let passNumber = 0; // Track actual pass number
+	let isCompleted = false; // Track if we've already added a completion message
 
 	// Outer loop for bubble sort passes
 	do {
 		swapped = false;
+		passNumber++; // Increment pass number at start of each pass
 
 		// Start of new pass - show in both detailed and simple modes
 		let passDescription;
 		// This will happen on the first pass
-		if (sortedElements === 0) {
-			passDescription = `Starting pass ${sortedElements + 1} through the array.`;
+		if (passNumber === 1) {
+			passDescription = `Starting pass ${passNumber} through the array.`;
 		} else {
-			passDescription = `A swap was needed in the previous pass, so we need another pass. Starting pass ${sortedElements + 1}.`;
+			passDescription = `A swap was needed in the previous pass, so we need another pass. Starting pass ${passNumber}.`;
 		}
 		
 		state.steps.push({
@@ -400,6 +403,7 @@ function calculateBubbleSortSteps() {
 			current: null,
 			compared: null,
 			sortedCount: sortedElements,
+			passNumber: passNumber,
 			description: passDescription,
 		});
 
@@ -412,6 +416,7 @@ function calculateBubbleSortSteps() {
 					current: i,
 					compared: i + 1,
 					sortedCount: sortedElements,
+					passNumber: passNumber,
 					description: `Comparing ${array[i]} and ${array[i + 1]}.`,
 				});
 			}
@@ -436,6 +441,7 @@ function calculateBubbleSortSteps() {
 					compared: i,
 					swapped: true,
 					sortedCount: sortedElements,
+					passNumber: passNumber,
 					description: `Swapped ${array[i]} and ${temp} because ${temp} is ${
 						state.isAscending ? "greater" : "smaller"
 					}.`,
@@ -447,6 +453,7 @@ function calculateBubbleSortSteps() {
 					current: i,
 					compared: i + 1,
 					sortedCount: sortedElements,
+					passNumber: passNumber,
 					description: `No swap needed. ${array[i]} is already ${
 						state.isAscending ? "smaller or equal to" : "greater or equal to"
 					} ${array[i + 1]}.`,
@@ -466,6 +473,7 @@ function calculateBubbleSortSteps() {
 				compared: null,
 				finalPosition: position,
 				sortedCount: sortedElements,
+				passNumber: passNumber,
 				description: `Element ${array[position]} is now in its final position.`,
 			});
 		}
@@ -480,20 +488,25 @@ function calculateBubbleSortSteps() {
 				current: null,
 				compared: null,
 				sortedCount: n,
+				passNumber: passNumber,
 				description: "No swaps needed in this pass. The array is sorted!",
 			});
+			isCompleted = true; // Mark that we've added a completion message
 			break;
 		}
 	} while (swapped && sortedElements < n - 1);
 
-	// Final sorted array
-	state.steps.push({
-		array: [...array],
-		current: null,
-		compared: null,
-		sortedCount: n,
-		description: "The array is now fully sorted.",
-	});
+	// Final sorted array - only add if we haven't already added a completion message
+	if (!isCompleted) {
+		state.steps.push({
+			array: [...array],
+			current: null,
+			compared: null,
+			sortedCount: n,
+			passNumber: passNumber,
+			description: "The array is now fully sorted.",
+		});
+	}
 
 	state.maxStep = state.steps.length - 1;
 }
@@ -525,7 +538,7 @@ function renderCurrentStep() {
 		// Add a pass header for bubble sort
 		const passHeader = document.createElement("div");
 		passHeader.className = "pass-header";
-		passHeader.textContent = `Pass ${step.sortedCount + 1}`;
+		passHeader.textContent = `Pass ${step.passNumber}`;
 		sortContainer.appendChild(passHeader);
 	} else if (state.algorithm === "insertion" && 
 		step.isPassHeader) {
