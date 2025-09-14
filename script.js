@@ -666,15 +666,30 @@ function calculateMergeSortSteps() {
 				// Sort subarrays by start position for consistent display
 				newSubarrays.sort((a, b) => a.start - b.start);
 				
-				const splitSize = newSubarrays.filter(sub => sub.start < sub.end).length > 0 
-					? newSubarrays.find(sub => sub.start < sub.end).end - newSubarrays.find(sub => sub.start < sub.end).start + 1
-					: 1;
+				// Calculate sizes of subarrays that are larger than 1
+				const subarraysLargerThanOne = newSubarrays.filter(sub => sub.start < sub.end);
+				const sizes = subarraysLargerThanOne.map(sub => sub.end - sub.start + 1);
+				
+				let description;
+				if (sizes.length === 0) {
+					description = "Array divided into individual subarrays of size 1.";
+				} else {
+					const uniqueSizes = [...new Set(sizes)];
+					if (uniqueSizes.length === 1) {
+						// All remaining subarrays are the same size
+						description = `Split arrays into smaller pieces. ${sizes.length} ${sizes.length === 1 ? 'subarray' : 'subarrays'} of size ${uniqueSizes[0]} remaining.`;
+					} else {
+						// Different sizes - show the actual sizes
+						sizes.sort((a, b) => b - a); // Sort descending for better readability
+						description = `Split arrays into smaller pieces. Remaining subarray sizes: ${sizes.join(', ')}.`;
+					}
+				}
 				
 				state.steps.push({
 					array: [...array],
 					subarrays: newSubarrays,
 					phase: 'dividing',
-					description: `Split arrays into smaller pieces. Largest remaining subarray size: ${splitSize}.`,
+					description: description,
 				});
 				
 				workingSubarrays.length = 0;
@@ -692,7 +707,7 @@ function calculateMergeSortSteps() {
 			array: [...array],
 			subarrays: subarrays,
 			phase: 'dividing',
-			description: "Array divided into individual elements. Each element is now a subarray of size 1.",
+			description: "Array divided into individual subarrays of size 1.",
 		});
 	}
 	
@@ -766,12 +781,29 @@ function calculateMergeSteps(originalArray) {
 		
 		// Add the merge step (for simple mode or final result of detailed steps)
 		if (!state.isDetailedMode || newSubarrays.length === 1) {
-			const subarraySize = newSubarrays[0].end - newSubarrays[0].start + 1;
+			let description;
+			if (newSubarrays.length === 1) {
+				const subarraySize = newSubarrays[0].end - newSubarrays[0].start + 1;
+				description = `Merged into 1 sorted array of size ${subarraySize}.`;
+			} else {
+				// Calculate sizes of all subarrays
+				const sizes = newSubarrays.map(sub => sub.end - sub.start + 1);
+				const uniqueSizes = [...new Set(sizes)];
+				
+				if (uniqueSizes.length === 1) {
+					// All subarrays are the same size
+					description = `Merged into ${newSubarrays.length} sorted arrays of size ${uniqueSizes[0]}.`;
+				} else {
+					// Different sizes - show the actual sizes
+					description = `Merged into ${newSubarrays.length} sorted arrays of sizes ${sizes.join(', ')}.`;
+				}
+			}
+			
 			state.steps.push({
 				array: workingArray,
 				subarrays: newSubarrays,
 				phase: 'merging',
-				description: `Merged into ${newSubarrays.length} sorted ${newSubarrays.length === 1 ? 'array' : 'arrays'} of size ${subarraySize}.`,
+				description: description,
 			});
 		}
 		
@@ -877,7 +909,7 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 		comparisonSubarrays.sort((a, b) => a.start - b.start);
 		
 		state.steps.push({
-			array: [...displayArray],
+			array: [...workingArray],
 			subarrays: comparisonSubarrays,
 			phase: 'merging',
 			mergingLeft: left,
@@ -907,7 +939,14 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 		// We need to show the merged portion, and the remaining unprocessed portions
 		const progressSubarrays = [...completedMerges];
 		
-		// Track covered positions
+		// Create a display array that shows merged progress but preserves original unprocessed values
+		const stepDisplayArray = [...workingArray]; // Start with original values
+		// Overwrite only the merged portion with the new sorted values
+		for (let i = 0; i < mergedResult.length; i++) {
+			stepDisplayArray[left.start + i] = mergedResult[i];
+		}
+		
+		// Track which positions are covered by completed merges
 		const progressCoveredPositions = new Set();
 		for (const subarray of completedMerges) {
 			for (let i = subarray.start; i <= subarray.end; i++) {
@@ -915,7 +954,7 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 			}
 		}
 		
-		// Add the current merged portion
+		// Add the current merged portion (where results are being placed)
 		if (mergedResult.length > 0) {
 			const mergedPortion = { start: left.start, end: left.start + mergedResult.length - 1 };
 			progressSubarrays.push(mergedPortion);
@@ -924,15 +963,17 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 			}
 		}
 		
-		// Add remaining unprocessed portions from left array
-		if (leftIndex < leftArray.length) {
-			const leftRemaining = { start: left.start + leftIndex, end: left.end };
+		// Add remaining unprocessed portions from left array (starting after the merged portion)
+		const leftUnprocessedStart = left.start + mergedResult.length;
+		if (leftIndex < leftArray.length && leftUnprocessedStart <= left.end) {
+			const leftRemaining = { start: leftUnprocessedStart, end: left.end };
 			progressSubarrays.push(leftRemaining);
 			for (let i = leftRemaining.start; i <= leftRemaining.end; i++) {
 				progressCoveredPositions.add(i);
 			}
 		}
-		// Add remaining unprocessed portions from right array
+		
+		// Add remaining unprocessed portions from right array (original positions)
 		if (rightIndex < rightArray.length) {
 			const rightRemaining = { start: right.start + rightIndex, end: right.end };
 			progressSubarrays.push(rightRemaining);
@@ -941,7 +982,7 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 			}
 		}
 		
-		// Add any remaining uncovered positions as individual elements
+		// Add any other uncovered individual elements
 		for (let i = 0; i < workingArray.length; i++) {
 			if (!progressCoveredPositions.has(i)) {
 				progressSubarrays.push({ start: i, end: i });
@@ -951,7 +992,7 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 		progressSubarrays.sort((a, b) => a.start - b.start);
 		
 		state.steps.push({
-			array: [...displayArray],
+			array: [...stepDisplayArray],
 			subarrays: progressSubarrays,
 			phase: 'merging',
 			selectedElement: left.start + mergedResult.length - 1,
@@ -974,6 +1015,13 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 			for (let i = subarray.start; i <= subarray.end; i++) {
 				leftCoveredPositions.add(i);
 			}
+		}
+		
+		// Create a display array that shows merged progress but preserves original unprocessed values
+		const leftStepDisplayArray = [...workingArray]; // Start with original values
+		// Overwrite only the merged portion with the new sorted values
+		for (let i = 0; i < mergedResult.length; i++) {
+			leftStepDisplayArray[left.start + i] = mergedResult[i];
 		}
 		
 		// Add the current merged portion
@@ -1003,7 +1051,7 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 		progressSubarrays.sort((a, b) => a.start - b.start);
 		
 		state.steps.push({
-			array: [...displayArray],
+			array: [...leftStepDisplayArray],
 			subarrays: progressSubarrays,
 			phase: 'merging',
 			selectedElement: left.start + mergedResult.length - 1,
@@ -1028,6 +1076,13 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 			}
 		}
 		
+		// Create a display array that shows merged progress but preserves original unprocessed values
+		const rightStepDisplayArray = [...workingArray]; // Start with original values
+		// Overwrite only the merged portion with the new sorted values
+		for (let i = 0; i < mergedResult.length; i++) {
+			rightStepDisplayArray[left.start + i] = mergedResult[i];
+		}
+		
 		// Add the current merged portion
 		if (mergedResult.length > 0) {
 			const mergedPortion = { start: left.start, end: left.start + mergedResult.length - 1 };
@@ -1046,7 +1101,7 @@ function calculateDetailedMerge(workingArray, left, right, allSubarrays, complet
 		progressSubarrays.sort((a, b) => a.start - b.start);
 		
 		state.steps.push({
-			array: [...displayArray],
+			array: [...rightStepDisplayArray],
 			subarrays: progressSubarrays,
 			phase: 'merging',
 			selectedElement: left.start + mergedResult.length - 1,
