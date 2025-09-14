@@ -8,7 +8,7 @@ const state = {
 	isLetters: false, // New property to track if using letters instead of numbers
 	arrayLength: 8, // New property to track array length
 	steps: [],
-	algorithm: "insertion", // Track current algorithm
+	algorithm: "bubble", // Track current algorithm
 };
 
 // DOM elements
@@ -203,6 +203,7 @@ function calculateBubbleSortSteps() {
 	});
 
 	let swapped;
+	let previousPassSwapped = false; // Track if previous pass had swaps
 	const n = array.length;
 	let sortedElements = 0;
 
@@ -210,16 +211,22 @@ function calculateBubbleSortSteps() {
 	do {
 		swapped = false;
 
-		// Start of new pass
-		if (state.isDetailedMode) {
-			state.steps.push({
-				array: [...array],
-				current: null,
-				compared: null,
-				sortedCount: sortedElements,
-				description: `Starting pass ${sortedElements + 1} through the array.`,
-			});
+		// Start of new pass - show in both detailed and simple modes
+		let passDescription;
+		// This will happen on the first pass
+		if (sortedElements === 0) {
+			passDescription = `Starting pass ${sortedElements + 1} through the array.`;
+		} else {
+			passDescription = `A swap was needed in the previous pass, so we need another pass. Starting pass ${sortedElements + 1}.`;
 		}
+		
+		state.steps.push({
+			array: [...array],
+			current: null,
+			compared: null,
+			sortedCount: sortedElements,
+			description: passDescription,
+		});
 
 		// Inner loop for comparisons within a pass
 		for (let i = 0; i < n - 1 - sortedElements; i++) {
@@ -288,6 +295,9 @@ function calculateBubbleSortSteps() {
 			});
 		}
 
+		// Track if this pass had swaps for the next pass description
+		previousPassSwapped = swapped;
+
 		// Optimization: if no swaps occurred in a pass, the array is sorted
 		if (!swapped && sortedElements < n - 1) {
 			state.steps.push({
@@ -321,6 +331,20 @@ function renderCurrentStep() {
 
 	// Update the explanation
 	explanationElement.textContent = step.description;
+
+	// Check if this is the start of a new pass for bubble sort
+	if (state.algorithm === "bubble" && 
+		step.current === null && 
+		step.compared === null && 
+		step.sortedCount !== undefined &&
+		!step.finalPosition) {
+		
+		// Add a pass header
+		const passHeader = document.createElement("div");
+		passHeader.className = "pass-header";
+		passHeader.textContent = `Pass ${step.sortedCount + 1}`;
+		sortContainer.appendChild(passHeader);
+	}
 
 	// Create the step element
 	const stepElement = document.createElement("div");
@@ -445,8 +469,6 @@ function handleDecreaseSize() {
 // Handle algorithm selection change
 function handleAlgorithmChange() {
 	state.algorithm = algorithmSelector.value;
-	// Update the document title
-	document.title = `${state.algorithm.charAt(0).toUpperCase() + state.algorithm.slice(1)} Sort Visualization`;
 	// Update the heading
 	document.querySelector("h1").textContent =
 		`${state.algorithm.charAt(0).toUpperCase() + state.algorithm.slice(1)} Sort Visualization 🦆`;

@@ -170,6 +170,31 @@ input:checked + .slider:before {
 	position: relative;
 }
 
+.pass-header {
+	font-size: 18px;
+	font-weight: bold;
+	color: #2196f3;
+	text-align: center;
+	margin: 20px 0 15px 0;
+	padding: 10px 0;
+	border-top: 3px solid #2196f3;
+	background-color: #f0f7ff;
+	border-radius: 4px;
+	position: relative;
+}
+
+.pass-header:before {
+	content: "";
+	position: absolute;
+	top: -3px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 60px;
+	height: 6px;
+	background-color: #ff8c00;
+	border-radius: 3px;
+}
+
 .sort-step:before {
 	content: attr(data-step);
 	position: absolute;
@@ -331,10 +356,10 @@ kbd {
 		transform: translateY(0);
 	}
 	25% {
-		transform: translateY(-10px);
+		transform: translateY(-2px);
 	}
 	75% {
-		transform: translateY(10px);
+		transform: translateY(2px);
 	}
 	100% {
 		transform: translateY(0);
