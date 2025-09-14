@@ -11,6 +11,7 @@ const state = {
 	algorithm: null, // Track current algorithm
 	isCustomArray: false, // Track if using custom array instead of random
 	customArrayInput: "", // Store the custom array input string
+	isComputerVisionMode: false, // Track if computer vision mode is enabled
 };
 
 // DOM elements
@@ -29,6 +30,8 @@ const customArrayToggle = document.getElementById("custom-array-mode"); // Toggl
 const customArrayInput = document.getElementById("custom-array-input"); // Input field for custom array
 const customArraySection = document.getElementById("custom-array-section"); // Section containing custom array input
 const applyCustomArrayButton = document.getElementById("apply-custom-array"); // Apply button for custom array
+const computerVisionToggle = document.getElementById("computer-vision-mode"); // Toggle for computer vision mode
+const computerVisionContainer = document.getElementById("computer-vision-toggle-container"); // Container for computer vision toggle
 
 // Initialize the application
 function init() {
@@ -59,12 +62,18 @@ function init() {
 	customArrayInput.addEventListener("blur", validateCustomArrayInput);
 	customArrayInput.addEventListener("keypress", handleCustomArrayKeyPress);
 	applyCustomArrayButton.addEventListener("click", handleApplyCustomArray);
+	computerVisionToggle.addEventListener("change", handleComputerVisionModeChange);
 
 	// Set initial array size value in the display
 	arraySizeDisplay.textContent = state.arrayLength;
 
 	// Initialize custom array input
 	state.customArrayInput = customArrayInput.value;
+
+	// Initialize computer vision toggle state - hidden by default since we start in simple mode
+	computerVisionContainer.style.display = (!state.isDetailedMode || state.algorithm === 'merge') ? 'none' : 'flex';
+	computerVisionToggle.checked = false;
+	state.isComputerVisionMode = false;
 
 	// Add keyboard event listeners
 	document.addEventListener("keydown", handleKeyDown);
@@ -693,9 +702,17 @@ function renderCurrentStep() {
 	// Update the next button
 	if (state.currentStep === state.maxStep) {
 		nextButton.disabled = true;
+		// Remove computer vision mode when sorting is complete to show all final results
+		if (state.isComputerVisionMode) {
+			sortContainer.classList.remove('computer-vision-mode');
+		}
 	} else {
 		nextButton.disabled = false;
 		nextButton.textContent = "Next Step";
+		// Restore computer vision mode if it was enabled and we're not at the end
+		if (state.isComputerVisionMode) {
+			sortContainer.classList.add('computer-vision-mode');
+		}
 	}
 
 	// Scroll to the bottom
@@ -719,6 +736,14 @@ function handleReset() {
 	nextButton.disabled = false;
 	generateRandomArray();
 	calculateSortSteps();
+	
+	// Restore computer vision mode if the toggle is checked and it's available
+	if (state.isComputerVisionMode && state.isDetailedMode && state.algorithm !== 'merge') {
+		sortContainer.classList.add('computer-vision-mode');
+	} else {
+		sortContainer.classList.remove('computer-vision-mode');
+	}
+	
 	renderCurrentStep();
 }
 
@@ -731,6 +756,20 @@ function handleDirectionChange() {
 // Handle mode toggle change
 function handleModeChange() {
 	state.isDetailedMode = detailedModeToggle.checked;
+	
+	// Hide computer vision toggle in simple mode
+	if (!state.isDetailedMode) {
+		computerVisionContainer.style.display = 'none';
+		computerVisionToggle.checked = false;
+		state.isComputerVisionMode = false;
+		sortContainer.classList.remove('computer-vision-mode');
+	} else {
+		// Show computer vision toggle in detailed mode (unless merge sort)
+		if (state.algorithm !== 'merge') {
+			computerVisionContainer.style.display = 'flex';
+		}
+	}
+	
 	handleReset(); // Simply reset when mode changes
 }
 
@@ -761,6 +800,20 @@ function handleDecreaseSize() {
 // Handle algorithm selection change
 function handleAlgorithmChange() {
 	state.algorithm = algorithmSelector.value;
+	
+	// Hide computer vision toggle for merge sort
+	if (state.algorithm === 'merge') {
+		computerVisionContainer.style.display = 'none';
+		computerVisionToggle.checked = false;
+		state.isComputerVisionMode = false;
+		sortContainer.classList.remove('computer-vision-mode');
+	} else {
+		// Show computer vision toggle for other algorithms (if in detailed mode)
+		if (state.isDetailedMode) {
+			computerVisionContainer.style.display = 'flex';
+		}
+	}
+	
 	// Update the heading
 	document.querySelector("h1").textContent =
 		`${state.algorithm.charAt(0).toUpperCase() + state.algorithm.slice(1)} Sort Visualization 🦆`;
@@ -792,6 +845,18 @@ function handleCustomArrayModeChange() {
 	}
 	
 	handleReset();
+}
+
+// Handle computer vision mode toggle
+function handleComputerVisionModeChange() {
+	state.isComputerVisionMode = computerVisionToggle.checked;
+	
+	// Add or remove the computer-vision-mode class from the sort container
+	if (state.isComputerVisionMode) {
+		sortContainer.classList.add('computer-vision-mode');
+	} else {
+		sortContainer.classList.remove('computer-vision-mode');
+	}
 }
 
 // Handle custom array input changes (real-time)

@@ -741,3 +741,16 @@ kbd {
 	border-radius: 4px;
 	border: 1px solid #f44336;
 }
+
+/* Computer Vision Mode - Hide non-active items */
+.sort-container.computer-vision-mode .number-box:not(.current):not(.sorted):not(.insertion-point):not(.inserted-after):not(.moved-value):not(.compared):not(.swapped) {
+	color: transparent;
+}
+
+.sort-container.computer-vision-mode .number-box.sorted {
+	color: transparent;
+}
+
+.sort-container.computer-vision-mode .number-box.unsorted {
+	color: transparent;
+}
