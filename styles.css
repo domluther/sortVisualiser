@@ -210,6 +210,19 @@ input:checked + .slider:before {
 	border-radius: 3px;
 }
 
+.detailed-mode-note {
+	background-color: #fff3cd;
+	border: 1px solid #ffeaa7;
+	border-radius: 6px;
+	padding: 12px 16px;
+	margin: 15px 0;
+	color: #856404;
+	font-size: 14px;
+	line-height: 1.4;
+	text-align: center;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .sort-step:before {
 	content: attr(data-step);
 	position: absolute;
@@ -537,6 +550,11 @@ kbd {
 	border-color: #2196f3;
 }
 
+.merging {
+	background-color: #fff3e0;
+	border-color: #ff9800;
+}
+
 .split-left {
 	background-color: #ffecb3;
 	border-color: #ffa000;
@@ -547,6 +565,35 @@ kbd {
 	background-color: #f3e5f5;
 	border-color: #9c27b0;
 	box-shadow: 0 0 3px rgba(156, 39, 176, 0.5);
+}
+
+/* Detailed merge comparison states */
+.comparing-left {
+	background-color: #bbdefb;
+	border-color: #2196f3;
+	animation: pulse-blue 1s infinite;
+}
+
+.comparing-right {
+	background-color: #f8bbd0;
+	border-color: #e91e63;
+	animation: pulse-pink 1s infinite;
+}
+
+.selected {
+	background-color: #c8e6c9;
+	border-color: #4caf50;
+	animation: glow-green 0.8s ease-in-out;
+}
+
+.merging-left {
+	background-color: #e1f5fe;
+	border-color: #03a9f4;
+}
+
+.merging-right {
+	background-color: #fce4ec;
+	border-color: #e91e63;
 }
 
 .selected-element {
@@ -592,6 +639,21 @@ kbd {
 	}
 	100% {
 		box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+	}
+}
+
+@keyframes glow-green {
+	0% {
+		box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+		transform: scale(1);
+	}
+	50% {
+		box-shadow: 0 0 0 8px rgba(76, 175, 80, 0.3);
+		transform: scale(1.05);
+	}
+	100% {
+		box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+		transform: scale(1);
 	}
 }
 
