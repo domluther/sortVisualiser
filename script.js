@@ -8,7 +8,7 @@ const state = {
 	isLetters: false, // New property to track if using letters instead of numbers
 	arrayLength: 8, // New property to track array length
 	steps: [],
-	algorithm: "insertion", // Track current algorithm
+	algorithm: null, // Track current algorithm
 };
 
 // DOM elements
@@ -26,7 +26,16 @@ const algorithmSelector = document.getElementById("algorithm-selector");
 
 // Initialize the application
 function init() {
-	generateRandomArray();
+	state.algorithm = 'merge'; // Default to merge sort
+	
+	// Set the algorithm selector to match the default
+	algorithmSelector.value = state.algorithm;
+	
+	// Update the heading to match the algorithm
+	document.querySelector("h1").textContent =
+		`${state.algorithm.charAt(0).toUpperCase() + state.algorithm.slice(1)} Sort Visualization 🦆`;
+	
+	generateRandomArray();	
 	calculateSortSteps();
 	renderCurrentStep();
 
@@ -373,7 +382,7 @@ function renderCurrentStep() {
 	// Update the explanation
 	explanationElement.textContent = step.description;
 
-	// Check if this is the start of a new pass
+	// Check if this is the start of a new pass or phase
 	if (state.algorithm === "bubble" && 
 		step.current === null && 
 		step.compared === null && 
@@ -393,53 +402,104 @@ function renderCurrentStep() {
 		passHeader.className = "pass-header";
 		passHeader.textContent = `Pass ${step.passNumber}`;
 		sortContainer.appendChild(passHeader);
+	} else if (state.algorithm === "merge" && 
+		step.phase === 'dividing' && 
+		state.currentStep === 0) {
+		
+		// Add a phase header for merge sort dividing phase
+		const phaseHeader = document.createElement("div");
+		phaseHeader.className = "pass-header";
+		phaseHeader.textContent = "Dividing";
+		sortContainer.appendChild(phaseHeader);
 	}
 
 	// Create the step element
 	const stepElement = document.createElement("div");
 	stepElement.className = "sort-step";
+	if (state.algorithm === "merge") {
+		stepElement.classList.add("merge-sort");
+		stepElement.setAttribute("data-array-size", state.arrayLength);
+	}
 	stepElement.setAttribute("data-step", `Step ${state.currentStep}:`);
 
-	// Create the boxes for this step
-	for (let i = 0; i < step.array.length; i++) {
-		const box = document.createElement("div");
-		box.className = "number-box";
+	// Handle merge sort rendering with visual separation
+	if (state.algorithm === "merge" && step.subarrays) {
+		// For merge sort, render subarrays with visual separation
+		step.subarrays.forEach((subarray, subarrayIndex) => {
+			// Create a container for each subarray
+			const subarrayContainer = document.createElement("div");
+			subarrayContainer.className = "subarray-container";
+			
+			// Create boxes for this subarray
+			for (let i = subarray.start; i <= subarray.end; i++) {
+				const box = document.createElement("div");
+				box.className = "number-box";
+				
+				// Add merge sort specific styling
+				if (step.phase === 'dividing') {
+					box.classList.add("dividing");
+				}
+				
+				// Highlight split elements in detailed mode
+				if (step.splitStart !== undefined && step.splitEnd !== undefined) {
+					if (i >= step.splitStart && i <= step.splitEnd) {
+						if (i <= step.splitMid) {
+							box.classList.add("split-left");
+						} else {
+							box.classList.add("split-right");
+						}
+					}
+				}
+				
+				box.textContent = step.array[i];
+				subarrayContainer.appendChild(box);
+			}
+			
+			stepElement.appendChild(subarrayContainer);
+		});
+	} else {
+		// Original rendering for insertion and bubble sort
+		// Create the boxes for this step
+		for (let i = 0; i < step.array.length; i++) {
+			const box = document.createElement("div");
+			box.className = "number-box";
 
-		// Apply appropriate styling based on the algorithm
-		if (state.algorithm === "insertion") {
-			if (i === step.current) {
-				box.classList.add("current");
-			} else if (i === step.compared) {
-				box.classList.add("compared");
-			} else if (i === step.insertionPoint) {
-				box.classList.add("insertion-point");
-			} else if (i === step.insertedAfter) {
-				box.classList.add("inserted-after");
-			} else if (i < step.sorted) {
-				box.classList.add("sorted");
-			} else {
-				box.classList.add("unsorted");
-			}
-		} else if (state.algorithm === "bubble") {
-			if (i === step.current || i === step.compared) {
-				box.classList.add(step.swapped ? "swapped" : "compared");
-			} else if (
-				step.sortedCount !== undefined &&
-				i >= step.array.length - step.sortedCount
-			) {
-				box.classList.add("sorted");
-			} else {
-				box.classList.add("unsorted");
+			// Apply appropriate styling based on the algorithm
+			if (state.algorithm === "insertion") {
+				if (i === step.current) {
+					box.classList.add("current");
+				} else if (i === step.compared) {
+					box.classList.add("compared");
+				} else if (i === step.insertionPoint) {
+					box.classList.add("insertion-point");
+				} else if (i === step.insertedAfter) {
+					box.classList.add("inserted-after");
+				} else if (i < step.sorted) {
+					box.classList.add("sorted");
+				} else {
+					box.classList.add("unsorted");
+				}
+			} else if (state.algorithm === "bubble") {
+				if (i === step.current || i === step.compared) {
+					box.classList.add(step.swapped ? "swapped" : "compared");
+				} else if (
+					step.sortedCount !== undefined &&
+					i >= step.array.length - step.sortedCount
+				) {
+					box.classList.add("sorted");
+				} else {
+					box.classList.add("unsorted");
+				}
+
+				// Highlight final position element
+				if (step.finalPosition !== undefined && i === step.finalPosition) {
+					box.classList.add("final-position");
+				}
 			}
 
-			// Highlight final position element
-			if (step.finalPosition !== undefined && i === step.finalPosition) {
-				box.classList.add("final-position");
-			}
+			box.textContent = step.array[i];
+			stepElement.appendChild(box);
 		}
-
-		box.textContent = step.array[i];
-		stepElement.appendChild(box);
 	}
 
 	// If there's a moved value in detailed mode, show it
@@ -532,14 +592,71 @@ function handleAlgorithmChange() {
 
 function calculateMergeSortSteps() {
 	const array = [...state.numbers];
-	// Placeholder for merge sort implementation
 	state.steps = [];
+	
+	// Add initial state
 	state.steps.push({
 		array: [...array],
-		current: null,
-		compared: null,
-		description: "Merge sort implementation coming soon!",
+		subarrays: [{ start: 0, end: array.length - 1 }],
+		phase: 'dividing',
+		description: "Starting with the original array. We'll divide it into smaller subarrays.",
 	});
+
+	if (state.isDetailedMode) {
+		// Detailed mode: show each step of splitting
+		const workingSubarrays = [{ start: 0, end: array.length - 1 }];
+		
+		while (workingSubarrays.some(sub => sub.start < sub.end)) {
+			const newSubarrays = [];
+			let hasSplit = false;
+			
+			for (const subarray of workingSubarrays) {
+				if (subarray.start < subarray.end) {
+					// Split this subarray
+					const mid = Math.floor((subarray.start + subarray.end) / 2);
+					newSubarrays.push({ start: subarray.start, end: mid });
+					newSubarrays.push({ start: mid + 1, end: subarray.end });
+					hasSplit = true;
+				} else {
+					// Keep single elements as they are
+					newSubarrays.push(subarray);
+				}
+			}
+			
+			if (hasSplit) {
+				// Sort subarrays by start position for consistent display
+				newSubarrays.sort((a, b) => a.start - b.start);
+				
+				const splitSize = newSubarrays.filter(sub => sub.start < sub.end).length > 0 
+					? newSubarrays.find(sub => sub.start < sub.end).end - newSubarrays.find(sub => sub.start < sub.end).start + 1
+					: 1;
+				
+				state.steps.push({
+					array: [...array],
+					subarrays: newSubarrays,
+					phase: 'dividing',
+					description: `Split arrays into smaller pieces. Largest remaining subarray size: ${splitSize}.`,
+				});
+				
+				workingSubarrays.length = 0;
+				workingSubarrays.push(...newSubarrays);
+			}
+		}
+	} else {
+		// Simple mode: one step from original to individual elements
+		const subarrays = [];
+		for (let i = 0; i < array.length; i++) {
+			subarrays.push({ start: i, end: i });
+		}
+		
+		state.steps.push({
+			array: [...array],
+			subarrays: subarrays,
+			phase: 'dividing',
+			description: "Array divided into individual elements. Each element is now a subarray of size 1.",
+		});
+	}
+
 	state.maxStep = state.steps.length - 1;
 }
 

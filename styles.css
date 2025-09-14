@@ -161,6 +161,8 @@ input:checked + .slider:before {
 
 .sort-container {
 	margin: 20px 0;
+	overflow-x: auto;
+	min-width: 100%;
 }
 
 .sort-step {
@@ -168,6 +170,19 @@ input:checked + .slider:before {
 	justify-content: center;
 	margin: 10px 0;
 	position: relative;
+	gap: 5px;
+	overflow-x: auto;
+	padding: 0 10px;
+	padding-left: 80px; /* Leave space for step label */
+}
+
+/* Special handling for merge sort - no wrapping, allow horizontal scroll */
+.sort-step.merge-sort {
+	justify-content: center;
+	max-width: 100%;
+	overflow-x: auto;
+	padding: 10px;
+	padding-left: 80px; /* Consistent space for step label */
 }
 
 .pass-header {
@@ -203,6 +218,7 @@ input:checked + .slider:before {
 	transform: translateY(-50%);
 	font-weight: bold;
 	color: #666;
+	z-index: 1;
 }
 
 .number-box {
@@ -415,6 +431,46 @@ kbd {
 }
 
 /* Merge sort specific containers */
+.subarray-container {
+	display: inline-flex;
+	border: 2px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 6px;
+	background-color: #f8f9fa;
+	margin: 2px;
+	flex-shrink: 0;
+}
+
+.subarray-container .number-box {
+	margin: 0 1px;
+	flex-shrink: 0;
+}
+
+/* Responsive sizing for merge sort based on array size */
+.sort-step.merge-sort[data-array-size="9"] .subarray-container,
+.sort-step.merge-sort[data-array-size="10"] .subarray-container {
+	padding: 5px;
+}
+
+.sort-step.merge-sort[data-array-size="9"] .number-box,
+.sort-step.merge-sort[data-array-size="10"] .number-box {
+	min-width: 35px;
+	height: 35px;
+	font-size: 14px;
+}
+
+.sort-step.merge-sort[data-array-size="11"] .subarray-container,
+.sort-step.merge-sort[data-array-size="12"] .subarray-container {
+	padding: 4px;
+}
+
+.sort-step.merge-sort[data-array-size="11"] .number-box,
+.sort-step.merge-sort[data-array-size="12"] .number-box {
+	min-width: 30px;
+	height: 30px;
+	font-size: 12px;
+}
+
 .subarrays-container {
 	display: flex;
 	flex-direction: column;
@@ -476,6 +532,23 @@ kbd {
 }
 
 /* Element states during merge sort */
+.dividing {
+	background-color: #e3f2fd;
+	border-color: #2196f3;
+}
+
+.split-left {
+	background-color: #ffecb3;
+	border-color: #ffa000;
+	box-shadow: 0 0 3px rgba(255, 160, 0, 0.5);
+}
+
+.split-right {
+	background-color: #f3e5f5;
+	border-color: #9c27b0;
+	box-shadow: 0 0 3px rgba(156, 39, 176, 0.5);
+}
+
 .selected-element {
 	background-color: #fff9c4;
 	border-color: #fbc02d;
