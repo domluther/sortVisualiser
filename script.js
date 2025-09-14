@@ -8,7 +8,7 @@ const state = {
 	isLetters: false, // New property to track if using letters instead of numbers
 	arrayLength: 8, // New property to track array length
 	steps: [],
-	algorithm: "bubble", // Track current algorithm
+	algorithm: "insertion", // Track current algorithm
 };
 
 // DOM elements
@@ -98,7 +98,7 @@ function calculateInsertionSortSteps() {
 		array: [...array],
 		sorted: 1,
 		current: null,
-		description: "Starting with an unsorted array.",
+		description: `The first element ${array[0]} is already sorted. The rest are unsorted and will be inserted one by one.`,
 	});
 
 	// Perform insertion sort and save each step
@@ -170,11 +170,24 @@ function calculateInsertionSortSteps() {
 		}
 
 		// Both modes show the completed insertion
+		let insertionDescription = `Inserted ${current}`;
+		
+		// Add position context based on where it was inserted
+		if (insertPosition === 0) {
+			insertionDescription += ` before ${array[insertPosition + 1]}`;
+		} else if (insertPosition === i) {
+			// Inserted at the end of the sorted portion (before any unsorted elements)
+			insertionDescription += `  after ${array[insertPosition - 1]}.`;
+		} else {
+			// Inserted somewhere in the middle
+			insertionDescription += ` after ${array[insertPosition - 1]} and before ${array[insertPosition + 1]}.`;
+		}
+		
 		state.steps.push({
 			array: [...array],
 			sorted: i + 1,
 			current: insertPosition,
-			description: `Inserted ${current} in its correct position.`,
+			description: insertionDescription,
 		});
 	}
 
