@@ -9,6 +9,8 @@ const state = {
 	arrayLength: 8, // New property to track array length
 	steps: [],
 	algorithm: null, // Track current algorithm
+	isCustomArray: false, // Track if using custom array instead of random
+	customArrayInput: "", // Store the custom array input string
 };
 
 // DOM elements
@@ -23,6 +25,10 @@ const increaseSizeButton = document.getElementById("increase-size"); // Button t
 const decreaseSizeButton = document.getElementById("decrease-size"); // Button to decrease array size
 const explanationElement = document.getElementById("explanation");
 const algorithmSelector = document.getElementById("algorithm-selector");
+const customArrayToggle = document.getElementById("custom-array-mode"); // Toggle for custom array mode
+const customArrayInput = document.getElementById("custom-array-input"); // Input field for custom array
+const customArraySection = document.getElementById("custom-array-section"); // Section containing custom array input
+const applyCustomArrayButton = document.getElementById("apply-custom-array"); // Apply button for custom array
 
 // Initialize the application
 function init() {
@@ -48,9 +54,17 @@ function init() {
 	increaseSizeButton.addEventListener("click", handleIncreaseSize);
 	decreaseSizeButton.addEventListener("click", handleDecreaseSize);
 	algorithmSelector.addEventListener("change", handleAlgorithmChange);
+	customArrayToggle.addEventListener("change", handleCustomArrayModeChange);
+	customArrayInput.addEventListener("input", handleCustomArrayInputChange);
+	customArrayInput.addEventListener("blur", validateCustomArrayInput);
+	customArrayInput.addEventListener("keypress", handleCustomArrayKeyPress);
+	applyCustomArrayButton.addEventListener("click", handleApplyCustomArray);
 
 	// Set initial array size value in the display
 	arraySizeDisplay.textContent = state.arrayLength;
+
+	// Initialize custom array input
+	state.customArrayInput = customArrayInput.value;
 
 	// Add keyboard event listeners
 	document.addEventListener("keydown", handleKeyDown);
@@ -59,30 +73,141 @@ function init() {
 // Handle keyboard shortcuts
 function handleKeyDown(event) {
 	if (event.key.toLowerCase() === "n") {
-		handleNextStep();
+		// Only proceed if the next button is not disabled
+		if (!nextButton.disabled) {
+			handleNextStep();
+		}
 	} else if (event.key.toLowerCase() === "r") {
 		handleReset();
+	}
+}
+
+// Validate and parse custom array input
+function validateAndParseCustomArray(input) {
+	if (!input || input.trim() === "") {
+		return { isValid: false, error: "Please enter some values" };
+	}
+
+	// Split by commas and clean up whitespace
+	const values = input.split(",").map(val => val.trim()).filter(val => val !== "");
+	
+	if (values.length === 0) {
+		return { isValid: false, error: "Please enter at least one value" };
+	}
+
+	if (values.length > 12) {
+		return { isValid: false, error: "Maximum 12 values allowed" };
+	}
+
+	// Check if all values are consistent (all numbers or all letters)
+	const isAllNumbers = values.every(val => /^\d+$/.test(val));
+	const isAllLetters = values.every(val => /^[A-Za-z]$/.test(val));
+
+	if (!isAllNumbers && !isAllLetters) {
+		return { 
+			isValid: false, 
+			error: "All values must be either numbers (1,2,3) or single letters (A,B,C)" 
+		};
+	}
+
+	if (isAllNumbers) {
+		// Convert to numbers and validate range
+		const numbers = values.map(val => parseInt(val, 10));
+		const invalidNumbers = numbers.filter(num => num < 1 || num > 99);
+		
+		if (invalidNumbers.length > 0) {
+			return { 
+				isValid: false, 
+				error: "Numbers must be between 1 and 99" 
+			};
+		}
+
+		return { 
+			isValid: true, 
+			values: numbers, 
+			isLetters: false 
+		};
+	} else {
+		// Convert letters to uppercase
+		const letters = values.map(val => val.toUpperCase());
+		
+		return { 
+			isValid: true, 
+			values: letters, 
+			isLetters: true 
+		};
+	}
+}
+
+// Display error message for custom array input
+function showCustomArrayError(message) {
+	// Remove any existing error message
+	const existingError = document.querySelector('.error-message');
+	if (existingError) {
+		existingError.remove();
+	}
+
+	// Add error styling to input
+	customArrayInput.classList.add('error');
+
+	// Create and show error message
+	const errorDiv = document.createElement('div');
+	errorDiv.className = 'error-message';
+	errorDiv.textContent = message;
+	customArrayInput.parentElement.appendChild(errorDiv);
+}
+
+// Clear error message for custom array input
+function clearCustomArrayError() {
+	customArrayInput.classList.remove('error');
+	const existingError = document.querySelector('.error-message');
+	if (existingError) {
+		existingError.remove();
 	}
 }
 
 // Generate random array of specified length
 function generateRandomArray() {
 	state.numbers = [];
-	if (state.isLetters) {
-		// Generate random letters (A-Z)
-		for (let i = 0; i < state.arrayLength; i++) {
-			// Generate a random uppercase letter (ASCII code 65-90)
-			const randomLetter = String.fromCharCode(
-				Math.floor(Math.random() * 26) + 65,
-			);
-			state.numbers.push(randomLetter);
+	
+	// Check if we're using custom array mode
+	if (state.isCustomArray) {
+		// Validate and parse the custom input
+		const result = validateAndParseCustomArray(state.customArrayInput);
+		
+		if (result.isValid) {
+			state.numbers = [...result.values];
+			// Update the letters mode based on input type
+			state.isLetters = result.isLetters;
+			// Update letters toggle to match the custom input
+			lettersToggle.checked = result.isLetters;
+			// Clear any error messages
+			clearCustomArrayError();
+		} else {
+			// Show error and fall back to default array
+			showCustomArrayError(result.error);
+			// Create a simple default array to prevent empty state
+			state.numbers = state.isLetters ? ['A', 'B', 'C'] : [3, 1, 2];
 		}
 	} else {
-		// Generate random numbers (1-99)
-		for (let i = 0; i < state.arrayLength; i++) {
-			state.numbers.push(Math.floor(Math.random() * 99) + 1);
+		// Generate random array as before
+		if (state.isLetters) {
+			// Generate random letters (A-Z)
+			for (let i = 0; i < state.arrayLength; i++) {
+				// Generate a random uppercase letter (ASCII code 65-90)
+				const randomLetter = String.fromCharCode(
+					Math.floor(Math.random() * 26) + 65,
+				);
+				state.numbers.push(randomLetter);
+			}
+		} else {
+			// Generate random numbers (1-99)
+			for (let i = 0; i < state.arrayLength; i++) {
+				state.numbers.push(Math.floor(Math.random() * 99) + 1);
+			}
 		}
 	}
+	
 	state.currentStep = 0;
 }
 
@@ -627,6 +752,97 @@ function handleAlgorithmChange() {
 	document.querySelector("h1").textContent =
 		`${state.algorithm.charAt(0).toUpperCase() + state.algorithm.slice(1)} Sort Visualization 🦆`;
 	handleReset();
+}
+
+// Handle custom array mode toggle
+function handleCustomArrayModeChange() {
+	state.isCustomArray = customArrayToggle.checked;
+	
+	// Show/hide the custom array input section
+	if (state.isCustomArray) {
+		customArraySection.style.display = 'block';
+		// Focus on the input field for better UX
+		customArrayInput.focus();
+		// Disable array size controls when using custom array
+		increaseSizeButton.disabled = true;
+		decreaseSizeButton.disabled = true;
+		// Disable letters toggle as custom input determines the data type
+		lettersToggle.disabled = true;
+	} else {
+		customArraySection.style.display = 'none';
+		// Re-enable array size controls
+		increaseSizeButton.disabled = false;
+		decreaseSizeButton.disabled = false;
+		// Re-enable letters toggle
+		lettersToggle.disabled = false;
+		clearCustomArrayError();
+	}
+	
+	handleReset();
+}
+
+// Handle custom array input changes (real-time)
+function handleCustomArrayInputChange() {
+	// Clear error styling as user types
+	clearCustomArrayError();
+	
+	// Store the input value in state
+	state.customArrayInput = customArrayInput.value;
+}
+
+// Validate custom array input when field loses focus
+function validateCustomArrayInput() {
+	if (state.isCustomArray && customArrayInput.value.trim() !== "") {
+		const result = validateAndParseCustomArray(customArrayInput.value);
+		if (!result.isValid) {
+			showCustomArrayError(result.error);
+		}
+	}
+}
+
+// Handle Enter key press in custom array input
+function handleCustomArrayKeyPress(event) {
+	if (event.key === "Enter") {
+		event.preventDefault();
+		handleApplyCustomArray();
+	}
+}
+
+// Handle Apply button click for custom array
+function handleApplyCustomArray() {
+	if (!state.isCustomArray) return;
+	
+	const inputValue = customArrayInput.value.trim();
+	if (inputValue === "") {
+		showCustomArrayError("Please enter some values");
+		return;
+	}
+	
+	const result = validateAndParseCustomArray(inputValue);
+	if (!result.isValid) {
+		showCustomArrayError(result.error);
+		return;
+	}
+	
+	// Clear any existing errors
+	clearCustomArrayError();
+	
+	// Apply the custom array
+	state.numbers = result.values;
+	state.isLetters = result.isLetters;
+	state.arrayLength = result.values.length;
+	
+	// Update the letters toggle to match the detected type (but keep it disabled)
+	lettersToggle.checked = state.isLetters;
+	
+	// Update array size display
+	arraySizeDisplay.textContent = state.arrayLength;
+	
+	// Recalculate and render
+	state.currentStep = 0;
+	calculateSortSteps();
+	sortContainer.innerHTML = "";
+	renderCurrentStep();
 }
 
 function calculateMergeSortSteps() {

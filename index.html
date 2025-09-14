@@ -57,6 +57,25 @@
                     </label>
                     <span>Letters</span>
                 </div>
+                <div class="toggle-option">
+                    <span>Random</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="custom-array-mode">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Custom</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section" id="custom-array-section" style="display: none;">
+            <h3>Custom Array</h3>
+            <div class="custom-array-input">
+                <input type="text" id="custom-array-input" placeholder="Enter values separated by commas (e.g., 5,2,8,1,9)" maxlength="100">
+                <button id="apply-custom-array" class="apply-btn">Apply</button>
+                <div class="input-hint">
+                    <small>Numbers: 1,5,3,8,2 | Letters: A,C,B,F,D | Press Enter or click Apply</small>
+                </div>
             </div>
         </div>
     </div>
